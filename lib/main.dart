@@ -2,6 +2,9 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const String prefskey1 = 'count';
+const String prefsKey2 = 'strList';
+
 void main() {
   runApp(const MyApp());
 }
@@ -39,6 +42,10 @@ class _MyAppState extends State<MyApp> {
       // <-- Event handler
       // This is the fetch-event callback.
       print("[BackgroundFetch] Event received $taskId");
+      final prefs = await SharedPreferences.getInstance();
+      final textList = prefs.getStringList(prefsKey2) ?? [];
+      textList.add('task: $taskId, date: ${DateTime.now()}');
+      await prefs.setStringList(prefsKey2, textList);
       setState(() {
         _events.insert(0, DateTime.now());
       });
@@ -48,10 +55,16 @@ class _MyAppState extends State<MyApp> {
     }, (String taskId) async {
       // <-- Task timeout handler.
       // This task has exceeded its allowed running-time.  You must stop what you're doing and immediately .finish(taskId)
-      print("[BackgroundFetch] TASK TIMEOUT taskId: $taskId");
+      final prefs = await SharedPreferences.getInstance();
+      final textList = prefs.getStringList(prefsKey2) ?? [];
+      textList.add("[BackgroundFetch] TASK TIMEOUT taskId: $taskId");
+      await prefs.setStringList(prefsKey2, textList);
       BackgroundFetch.finish(taskId);
     });
-    print('[BackgroundFetch] configure success: $status');
+    final prefs = await SharedPreferences.getInstance();
+    final textList = prefs.getStringList(prefsKey2) ?? [];
+    textList.add("[BackgroundFetch] configure success: $status");
+    await prefs.setStringList(prefsKey2, textList);
     setState(() {
       _status = status;
     });
@@ -87,6 +100,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  List<String> _textList = ['befor initState'];
   bool _isLoading = false;
 
   late Future<void> _init;
@@ -114,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _counter = 0;
     });
-    await prefs.setInt('count', 0);
+    await prefs.setInt(prefskey1, 0);
 
     setState(() {
       _isLoading = false;
@@ -123,8 +137,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _initCounter() async {
     final prefs = await SharedPreferences.getInstance();
-    final initCount = prefs.getInt('count');
+    final initCount = prefs.getInt(prefskey1);
+    final textList = prefs.getStringList(prefsKey2);
     _counter = initCount ?? 0;
+    _textList = textList ?? ['text is empty'];
   }
 
   @override
@@ -166,6 +182,24 @@ class _MyHomePageState extends State<MyHomePage> {
                     '$_counter',
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Container(
+                      height: 300,
+                      decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+                      child: Scrollbar(
+                        child: ListView.builder(
+                          itemCount: _textList.length,
+                          itemBuilder: (context, index) {
+                            return Text(
+                              _textList[index],
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               ),
             );

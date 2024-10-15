@@ -52,6 +52,21 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _clearCounter() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _counter = 0;
+    });
+    await prefs.setInt('count', 0);
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   Future<void> _initCounter() async {
     final prefs = await SharedPreferences.getInstance();
     final initCount = prefs.getInt('count');
@@ -70,6 +85,12 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: [
+          ElevatedButton(
+            onPressed: _clearCounter,
+            child: const Icon(Icons.delete),
+          ),
+        ],
       ),
       body: FutureBuilder(
           future: _init,

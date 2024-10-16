@@ -41,10 +41,11 @@ class _MyAppState extends State<MyApp> {
             requiredNetworkType: NetworkType.NONE), (String taskId) async {
       // <-- Event handler
       // This is the fetch-event callback.
-      print("[BackgroundFetch] Event received $taskId");
       final prefs = await SharedPreferences.getInstance();
       final textList = prefs.getStringList(prefsKey2) ?? [];
-      textList.add('task: $taskId, date: ${DateTime.now()}');
+      textList.add("------------------------");
+      textList.add(DateTime.now().toString());
+      textList.add('[BackgroundFetch] Event received: $taskId');
       await prefs.setStringList(prefsKey2, textList);
       setState(() {
         _events.insert(0, DateTime.now());
@@ -57,12 +58,16 @@ class _MyAppState extends State<MyApp> {
       // This task has exceeded its allowed running-time.  You must stop what you're doing and immediately .finish(taskId)
       final prefs = await SharedPreferences.getInstance();
       final textList = prefs.getStringList(prefsKey2) ?? [];
+      textList.add("------------------------");
+      textList.add(DateTime.now().toString());
       textList.add("[BackgroundFetch] TASK TIMEOUT taskId: $taskId");
       await prefs.setStringList(prefsKey2, textList);
       BackgroundFetch.finish(taskId);
     });
     final prefs = await SharedPreferences.getInstance();
     final textList = prefs.getStringList(prefsKey2) ?? [];
+    textList.add("------------------------");
+    textList.add(DateTime.now().toString());
     textList.add("[BackgroundFetch] configure success: $status");
     await prefs.setStringList(prefsKey2, textList);
     setState(() {

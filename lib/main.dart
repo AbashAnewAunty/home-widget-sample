@@ -1,7 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
-void main() {
+const String prefKey1 = "textList";
+
+@pragma('vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    final now = DateTime.now();
+    final text1 = now.toString();
+    final text2 = "background task: $task"; //simpleTask will be emitted here.
+    final pref = await SharedPreferences.getInstance();
+    final textList = pref.getStringList(prefKey1) ?? [];
+    textList.add("------");
+    textList.add(text1);
+    textList.add(text2);
+    await pref.setStringList(prefKey1, textList);
+    return Future.value(true);
+  });
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // NOTE: workdmanger初期化は非同期しないと動作しない
+  await Workmanager().initialize(
+    callbackDispatcher, // The top level function, aka callbackDispatcher
+    isInDebugMode: true,
+  );
+  await Workmanager().registerOneOffTask("be.tramckrijte.workmanagerExample.taskId", "simpleTask");
+  await Workmanager().registerOneOffTask("be.tramckrijte.workmanagerExample.iOSBackgroundAppRefresh", "simpleTask2");
   runApp(const MyApp());
 }
 
@@ -33,6 +60,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  List<String> _textList = ['befor initState'];
   bool _isLoading = false;
 
   late Future<void> _init;
@@ -71,6 +99,16 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     final initCount = prefs.getInt('count');
     _counter = initCount ?? 0;
+    final textList = prefs.getStringList(prefKey1) ?? ["text is empty"];
+    _counter = initCount ?? 0;
+
+    final now = DateTime.now();
+    final text1 = now.toString();
+    final text2 = "appStart: $text1";
+    textList.add("--------");
+    textList.add(text2);
+    prefs.setStringList(prefKey1, textList);
+    _textList = [...textList];
   }
 
   @override
@@ -112,6 +150,24 @@ class _MyHomePageState extends State<MyHomePage> {
                     '$_counter',
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Container(
+                      height: 300,
+                      decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+                      child: Scrollbar(
+                        child: ListView.builder(
+                          itemCount: _textList.length,
+                          itemBuilder: (context, index) {
+                            return Text(
+                              _textList[index],
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               ),
             );

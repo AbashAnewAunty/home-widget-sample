@@ -47,6 +47,13 @@ struct homeWidgetEntryView : View {
             Text("Time:")
             Text(entry.date, style: .time)
 
+            Link(destination: URL(string: "SampleApp://topLink")!, label: {
+                Text("Top Link")
+            })
+            Text("Middle Link")
+                .font(.body)
+                .widgetURL(URL(string: "SampleApp://middleLink"))
+
             Text("Emoji:")
             Text(entry.emoji)
         }

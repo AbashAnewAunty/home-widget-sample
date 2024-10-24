@@ -1,12 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    HomeWidget.setAppGroupId('group.com.abashanew.homeWidgetSampl');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    HomeWidget.initiallyLaunchedFromHomeWidget()
+        .then((uri) => _launchedFromWidget(uri));
+    HomeWidget.widgetClicked.listen((uri) => _launchedFromWidget(uri));
+  }
+
+  void _launchedFromWidget(Uri? uri) {
+    print("uri: $uri");
+    if (uri != null) {
+      showDialog(
+        context: context,
+        builder: (buildContext) => AlertDialog(
+          title: const Text('App started from HomeScreenWidget'),
+          content: Text('Here is the URI: $uri'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +129,8 @@ class _MyHomePageState extends State<MyHomePage> {
       body: FutureBuilder(
           future: _init,
           builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done || _isLoading) {
+            if (snapshot.connectionState != ConnectionState.done ||
+                _isLoading) {
               return const Center(
                 child: CircularProgressIndicator(),
               );

@@ -1,6 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+@pragma("vm:entry-point")
+FutureOr<void> backgroundCallback(Uri? data) async {
+  // do something with data
+  print("background calback: $data");
+}
 
 void main() {
   runApp(const MyApp());
@@ -19,6 +27,7 @@ class _MyAppState extends State<MyApp> {
     // TODO: implement initState
     super.initState();
     HomeWidget.setAppGroupId('group.com.abashanew.homeWidgetSampl');
+    HomeWidget.registerInteractivityCallback(backgroundCallback);
   }
 
   @override
@@ -30,7 +39,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _launchedFromWidget(Uri? uri) {
-    print("uri: $uri");
+    print("uri: ${uri?.path}");
     if (uri != null) {
       showDialog(
         context: context,
